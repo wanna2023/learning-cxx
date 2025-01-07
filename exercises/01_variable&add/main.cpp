@@ -1,10 +1,10 @@
-#include "../exercise.h"
+#include "../exercise.h"  // 包含相关头文件
 
 // READ: 运算符 <https://zh.cppreference.com/w/cpp/language/expressions#.E8.BF.90.E7.AE.97.E7.AC.A6>
 
 int main(int argc, char **argv) {
     // TODO: 补全变量定义并打印加法运算
-    // x ?
+    int x = 5;  // 定义并初始化变量 x
     std::cout << x << " + " << x << " = " << x + x << std::endl;
     return 0;
 }
