@@ -1,41 +1,62 @@
-﻿#include "../exercise.h"
-#include <cstring>
+﻿#include <cstring>
+#include <iostream>  // 添加这行用于错误输出，方便调试
 
-// READ: 模板非类型实参 <https://zh.cppreference.com/w/cpp/language/template_parameters#%E6%A8%A1%E6%9D%BF%E9%9D%9E%E7%B1%BB%E5%9E%8B%E5%AE%9E%E5%8F%82>
+// 断言宏，如果条件不成立则打印错误并终止程序
+#define ASSERT(condition, message) \
+    if (!(condition)) { \
+        std::cerr << "Assertion failed: " << message << std::endl; \
+        std::exit(1); \
+    }
 
 template<unsigned int N, class T>
 struct Tensor {
-    unsigned int shape[N];
-    T *data;
+    unsigned int shape[N];  // 存储张量的每个维度的大小
+    T *data;                // 存储张量的数据
 
+    // 构造函数，初始化张量数据
     Tensor(unsigned int const shape_[N]) {
         unsigned int size = 1;
-        // TODO: 填入正确的 shape 并计算 size
-        data = new T[size];
-        std::memset(data, 0, size * sizeof(T));
+        // 填充 shape 数组并计算 size
+        for (unsigned int i = 0; i < N; ++i) {
+            shape[i] = shape_[i];
+            size *= shape[i];
+        }
+
+        data = new T[size];  // 为数据分配内存
+        std::memset(data, 0, size * sizeof(T));  // 初始化数据为 0
     }
+
+    // 析构函数，释放内存
     ~Tensor() {
         delete[] data;
     }
 
-    // 为了保持简单，禁止复制和移动
+    // 禁止复制和移动
     Tensor(Tensor const &) = delete;
     Tensor(Tensor &&) noexcept = delete;
 
+    // 支持下标访问运算符，提供访问数据的方式
     T &operator[](unsigned int const indices[N]) {
         return data[data_index(indices)];
     }
+    
     T const &operator[](unsigned int const indices[N]) const {
         return data[data_index(indices)];
     }
 
 private:
+    // 根据 indices 计算在 data 中的线性索引
     unsigned int data_index(unsigned int const indices[N]) const {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < N; ++i) {
+        unsigned int stride = 1;
+
+        // 从后向前计算线性索引
+        for (unsigned int i = N; i-- > 0;) {
             ASSERT(indices[i] < shape[i], "Invalid index");
-            // TODO: 计算 index
+            index += indices[i] * stride;
+            stride *= shape[i];  // 计算当前维度的步长
         }
+
         return index;
     }
 };

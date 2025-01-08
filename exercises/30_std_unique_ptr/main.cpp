@@ -22,39 +22,46 @@ public:
 };
 
 using Unique = std::unique_ptr<Resource>;
+
+// reset 函数，每次调用返回一个新的 Resource
 Unique reset(Unique ptr) {
-    if (ptr) ptr->record('r');
-    return std::make_unique<Resource>();
+    if (ptr) ptr->record('r');  // 如果已有资源，记录 'r'
+    return std::make_unique<Resource>();  // 返回一个新的 Resource
 }
+
+// drop 函数，将资源丢弃并返回 nullptr
 Unique drop(Unique ptr) {
-    if (ptr) ptr->record('d');
-    return nullptr;
+    if (ptr) ptr->record('d');  // 如果已有资源，记录 'd'
+    return nullptr;  // 丢弃资源
 }
+
+// forward 函数，返回传入的资源
 Unique forward(Unique ptr) {
-    if (ptr) ptr->record('f');
-    return ptr;
+    if (ptr) ptr->record('f');  // 如果已有资源，记录 'f'
+    return ptr;  // 返回传入的资源
 }
 
 int main(int argc, char **argv) {
     std::vector<std::string> problems[3];
 
-    drop(forward(reset(nullptr)));
-    problems[0] = std::move(RECORDS);
+    // 第一个测试用例
+    drop(forward(reset(nullptr)));  // 创建一个新资源，记录 'r'，然后丢弃资源，记录 'd'
+    problems[0] = std::move(RECORDS);  // 保存 RECORDS
 
-    forward(drop(reset(forward(forward(reset(nullptr))))));
-    problems[1] = std::move(RECORDS);
+    // 第二个测试用例
+    forward(drop(reset(forward(forward(reset(nullptr))))));  // 嵌套调用，资源生命周期较复杂
+    problems[1] = std::move(RECORDS);  // 保存 RECORDS
 
-    drop(drop(reset(drop(reset(reset(nullptr))))));
-    problems[2] = std::move(RECORDS);
+    // 第三个测试用例
+    drop(drop(reset(drop(reset(reset(nullptr))))));  // 更复杂的资源丢弃和重置
+    problems[2] = std::move(RECORDS);  // 保存 RECORDS
 
     // ---- 不要修改以上代码 ----
 
     std::vector<const char *> answers[]{
-        {"fd"},
-        // TODO: 分析 problems[1] 中资源的生命周期，将记录填入 `std::vector`
-        // NOTICE: 此题结果依赖对象析构逻辑，平台相关，提交时以 CI 实际运行平台为准
-        {"", "", "", "", "", "", "", ""},
-        {"", "", "", "", "", "", "", ""},
+        {"fd"},  // 第一个问题：记录顺序是 'r' 和 'd'
+        {"ffffdd", "rffdd"},  // 第二个问题：根据资源生命周期推断，记录顺序（注意这个依赖平台和对象析构的顺序）
+        {"fdffff", "fddff", ""},  // 第三个问题：根据资源管理和丢弃顺序推断记录
     };
 
     // ---- 不要修改以下代码 ----
