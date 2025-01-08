@@ -16,10 +16,10 @@ int main(int argc, char **argv) {
     ASSERT(observer.use_count() == 3, "");
 
     ptrs[1] = nullptr;
-    ASSERT(observer.use_count() == 1, "");
+    ASSERT(observer.use_count() == 2, "");
 
     ptrs[2] = std::make_shared<int>(*shared);
-    ASSERT(observer.use_count() == 0, "");
+    ASSERT(observer.use_count() == 1, "");
 
     ptrs[0] = shared;
     ptrs[1] = shared;
