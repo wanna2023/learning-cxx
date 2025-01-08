@@ -4,14 +4,14 @@
 // READ: 虚析构函数 <https://zh.cppreference.com/w/cpp/language/destructor>
 
 struct A {
-    // 静态字段需要在类外初始化
+    // 静态成员变量初始化
     static int num_a;
 
     A() {
-        ++num_a;  // 创建 A 类对象时，num_a 加 1
+        ++num_a;
     }
     virtual ~A() {
-        --num_a;  // 销毁 A 类对象时，num_a 减 1
+        --num_a;
     }
 
     virtual char name() const {
@@ -19,18 +19,18 @@ struct A {
     }
 };
 
-// 静态字段的初始化
+// 静态成员变量初始化
 int A::num_a = 0;
 
 struct B final : public A {
-    // 静态字段需要在类外初始化
+    // 静态成员变量初始化
     static int num_b;
 
     B() {
-        ++num_b;  // 创建 B 类对象时，num_b 加 1
+        ++num_b;
     }
     ~B() {
-        --num_b;  // 销毁 B 类对象时，num_b 减 1
+        --num_b;
     }
 
     char name() const final {
@@ -38,34 +38,34 @@ struct B final : public A {
     }
 };
 
-// 静态字段的初始化
+// 静态成员变量初始化
 int B::num_b = 0;
 
 int main(int argc, char **argv) {
     auto a = new A;
     auto b = new B;
-    ASSERT(A::num_a == 1, "A::num_a 应该是 1");
-    ASSERT(B::num_b == 1, "B::num_b 应该是 1");
-    ASSERT(a->name() == 'A', "a->name() 应该是 'A'");
-    ASSERT(b->name() == 'B', "b->name() 应该是 'B'");
+    ASSERT(A::num_a == 1, "Fill in the correct value for A::num_a");
+    ASSERT(B::num_b == 1, "Fill in the correct value for B::num_b");
+    ASSERT(a->name() == 'A', "Fill in the correct value for a->name()");
+    ASSERT(b->name() == 'B', "Fill in the correct value for b->name()");
 
     delete a;
     delete b;
-    ASSERT(A::num_a == 0, "每个 A 类对象已经销毁");
-    ASSERT(B::num_b == 0, "每个 B 类对象已经销毁");
+    ASSERT(A::num_a == 0, "Every A was destroyed");
+    ASSERT(B::num_b == 0, "Every B was destroyed");
 
-    A *ab = new B; // 创建 B 类对象，但通过 A 类指针访问
-    ASSERT(A::num_a == 1, "A::num_a 应该是 1");
-    ASSERT(B::num_b == 1, "B::num_b 应该是 1");
-    ASSERT(ab->name() == 'B', "ab->name() 应该是 'B'");
+    A *ab = new B; // 派生类指针可以随意转换为基类指针
+    ASSERT(A::num_a == 1, "Fill in the correct value for A::num_a");
+    ASSERT(B::num_b == 1, "Fill in the correct value for B::num_b");
+    ASSERT(ab->name() == 'B', "Fill in the correct value for ab->name()");
 
-    // 使用 dynamic_cast 安全地将 A 类型指针转换为 B 类型引用
-    B &bb = dynamic_cast<B&>(*ab); // 通过引用转换
-    ASSERT(bb.name() == 'B', "bb->name() 应该是 'B'");
+    // 正确的类型转换语句
+    B &bb = dynamic_cast<B&>(*ab); // 使用 dynamic_cast 转换基类指针为派生类引用
+    ASSERT(bb.name() == 'B', "Fill in the correct value for bb->name()");
 
-    delete ab; // 删除通过 A 类指针指向的 B 类对象
-    ASSERT(A::num_a == 0, "每个 A 类对象已经销毁");
-    ASSERT(B::num_b == 0, "每个 B 类对象已经销毁");
+    delete ab; // 通过指针可以删除指向的对象，即使是多态对象
+    ASSERT(A::num_a == 0, "Every A was destroyed");
+    ASSERT(B::num_b == 0, "Every B was destroyed");
 
     return 0;
 }
