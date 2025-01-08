@@ -1,68 +1,70 @@
 ﻿#include "../exercise.h"
-#include <cstring>
 #include <algorithm>
+#include <cstring>
+#include <iostream>
+
+// READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
 template<class T>
 struct Tensor4D {
     unsigned int shape[4];
     T *data;
 
-    // 构造函数
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
-        // 计算总元素个数
+        // 初始化形状并计算 size
+        std::memcpy(shape, shape_, sizeof(shape));
         for (int i = 0; i < 4; ++i) {
-            shape[i] = shape_[i];
-            size *= shape_[i];
+            size *= shape[i];
         }
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
 
-    // 析构函数
     ~Tensor4D() {
         delete[] data;
     }
 
-    // 禁止复制和移动构造
+    // 禁止复制和移动
     Tensor4D(Tensor4D const &) = delete;
     Tensor4D(Tensor4D &&) noexcept = delete;
 
-    // 单向广播的加法实现
+    // 处理单向广播加法
     Tensor4D &operator+=(Tensor4D const &others) {
-        // 检查形状的广播规则：每个维度要么相等，要么其中一个维度为 1
+        // 检查是否可以进行广播
         for (int i = 0; i < 4; ++i) {
-            if (shape[i] != others.shape[i] && shape[i] != 1 && others.shape[i] != 1) {
-                throw std::invalid_argument("Shapes are not broadcastable");
+            if (shape[i] != others.shape[i] && others.shape[i] != 1) {
+                // 如果两个张量的形状在该维度上不匹配且 others 的维度不为 1，则无法广播
+                throw std::invalid_argument("Shapes are not compatible for broadcasting.");
             }
         }
 
         unsigned int size = 1;
         for (int i = 0; i < 4; ++i) {
-            size *= shape[i]; // 计算当前张量的总元素个数
+            size *= shape[i];
         }
 
-        // 对于广播，我们需要进行元素逐个加法
+        // 执行加法操作，处理广播
         for (unsigned int i = 0; i < size; ++i) {
-            unsigned int idx[4] = {0};
-            unsigned int temp_idx = i;
+            unsigned int idx[4] = {0};  // 当前元素在 4 维空间中的索引
+            unsigned int tmp = i;
 
-            // 计算当前元素在 4D 张量中的坐标
-            for (int j = 3; j >= 0; --j) {
-                idx[j] = temp_idx % shape[j];
-                temp_idx /= shape[j];
+            // 反向计算四个维度的索引
+            for (int d = 3; d >= 0; --d) {
+                idx[d] = tmp % shape[d];
+                tmp /= shape[d];
             }
 
-            // 使用广播规则进行加法
-            T other_value = 0;
-            for (int j = 0; j < 4; ++j) {
-                if (others.shape[j] == 1 || idx[j] < others.shape[j]) {
-                    other_value = others.data[i];  // 如果这一维为1或idx小于对应维度大小，取others中的对应元素
-                    break;
+            // 处理广播：对每一维度进行适当的处理
+            T val = 0;
+            for (int d = 0; d < 4; ++d) {
+                if (others.shape[d] == 1 || others.shape[d] == shape[d]) {
+                    val += others.data[i]; // 直接加上对应的元素
                 }
             }
 
-            data[i] += other_value;
+            // 执行广播加法
+            data[i] += val;
         }
 
         return *this;
