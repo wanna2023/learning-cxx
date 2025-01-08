@@ -1,17 +1,14 @@
 #include "../exercise.h"
 
-// READ: 静态字段 <https://zh.cppreference.com/w/cpp/language/static>
-// READ: 虚析构函数 <https://zh.cppreference.com/w/cpp/language/destructor>
-
 struct A {
-    // 直接在类内初始化静态字段
+    // Correctly initialize the static field outside the class
     static int num_a;
 
     A() {
         ++num_a;
     }
 
-    virtual ~A() {  // 虚析构函数确保删除时会调用正确的析构函数
+    virtual ~A() {  // Virtual destructor to ensure correct polymorphic behavior
         --num_a;
     }
 
@@ -20,11 +17,11 @@ struct A {
     }
 };
 
-// 静态成员初始化
+// Define static field outside the class
 int A::num_a = 0;
 
 struct B final : public A {
-    // 直接在类内初始化静态字段
+    // Correctly initialize the static field outside the class
     static int num_b;
 
     B() {
@@ -35,37 +32,39 @@ struct B final : public A {
         --num_b;
     }
 
-    char name() const final {
+    char name() const final override {
         return 'B';
     }
 };
 
-// 静态成员初始化
+// Define static field outside the class
 int B::num_b = 0;
 
 int main(int argc, char **argv) {
     auto a = new A;
     auto b = new B;
+    ASSERT(A::num_a == 2, "A::num_a should be 2 after creating one A and one B object");
+    ASSERT(B::num_b == 1, "B::num_b should be 1 after creating one B object");
+    ASSERT(a->name() == 'A', "a->name() should return 'A'");
+    ASSERT(b->name() == 'B', "b->name() should return 'B'");
 
-    // 通过构造函数，A::num_a 应该为 2（一次在 A 构造，一次在 B 构造），B::num_b 应该为 1
-    ASSERT(A::num_a == 2, "Fill in the correct value for A::num_a");
-    ASSERT(B::num_b == 1, "Fill in the correct value for B::num_b");
-    ASSERT(a->name() == 'A', "Fill in the correct value for a->name()");
-    ASSERT(b->name() == 'B', "Fill in the correct value for b->name()");
+    delete a;
+    delete b;
+    ASSERT(A::num_a == 0, "Every A was destroyed");
+    ASSERT(B::num_b == 0, "Every B was destroyed");
 
-    delete a;  // 删除 A 对象，num_a 应该减 1
-    delete b;  // 删除 B 对象，num_b 应该减 1
-    ASSERT(A::num_a == 1, "Every A was destroyed");  // 这里的断言是检查 A::num_a 是否为 1
-    ASSERT(B::num_b == 0, "Every B was destroyed");  // 这里的断言是检查 B::num_b 是否为 0
+    A *ab = new B;  // Base class pointer can point to derived class
+    ASSERT(A::num_a == 1, "A::num_a should be 1 after creating a B object via A*");
+    ASSERT(B::num_b == 1, "B::num_b should be 1 after creating a B object via A*");
+    ASSERT(ab->name() == 'B', "ab->name() should return 'B'");
 
-    A *ab = new B;  // 基类指针指向派生类对象
-    ASSERT(A::num_a == 2, "Fill in the correct value for A::num_a");  // A::num_a 应该为 2
-    ASSERT(B::num_b == 1, "Fill in the correct value for B::num_b");  // B::num_b 应该为 1
-    ASSERT(ab->name() == 'B', "Fill in the correct value for ab->name()");  // 多态，应该调用 B::name()
+    // Dynamic cast to ensure we can safely convert A* to B& if the object is actually of type B
+    B &bb = dynamic_cast<B&>(*ab);
+    ASSERT(bb.name() == 'B', "bb.name() should return 'B'");
 
-    delete ab;  // 删除 B 对象，A::num_a 和 B::num_b 应该各减 1
-    ASSERT(A::num_a == 1, "Every A was destroyed");  // A::num_a 应该是 1
-    ASSERT(B::num_b == 0, "Every B was destroyed");  // B::num_b 应该是 0
+    delete ab;  // Deleting via base class pointer should call the correct destructor
+    ASSERT(A::num_a == 0, "Every A was destroyed");
+    ASSERT(B::num_b == 0, "Every B was destroyed");
 
     return 0;
 }
