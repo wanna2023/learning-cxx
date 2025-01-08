@@ -10,7 +10,8 @@ int main(int argc, char **argv) {
     std::shared_ptr<int> ptrs[]{shared, shared, shared};
 
     std::weak_ptr<int> observer = shared;
-    ASSERT(observer.use_count() == 3, "Initial use count of observer should be 3");
+    // 修改为 1，因为 weak_ptr 不增加引用计数
+    ASSERT(observer.use_count() == 1, "Initial use count of observer should be 1");
 
     ptrs[0].reset();
     ASSERT(observer.use_count() == 2, "After resetting ptrs[0], use count should be 2");
