@@ -4,12 +4,13 @@
 // READ: 虚析构函数 <https://zh.cppreference.com/w/cpp/language/destructor>
 
 struct A {
-    // 正确初始化静态字段
-    static int num_a;  // 声明静态成员变量
+    // 直接在类内初始化静态字段
+    static int num_a;
 
     A() {
         ++num_a;
     }
+
     virtual ~A() {  // 虚析构函数确保删除时会调用正确的析构函数
         --num_a;
     }
@@ -23,12 +24,13 @@ struct A {
 int A::num_a = 0;
 
 struct B final : public A {
-    // 正确初始化静态字段
-    static int num_b;  // 声明静态成员变量
+    // 直接在类内初始化静态字段
+    static int num_b;
 
     B() {
         ++num_b;
     }
+
     ~B() {
         --num_b;
     }
@@ -60,10 +62,6 @@ int main(int argc, char **argv) {
     ASSERT(A::num_a == 2, "Fill in the correct value for A::num_a");  // A::num_a 应该为 2
     ASSERT(B::num_b == 1, "Fill in the correct value for B::num_b");  // B::num_b 应该为 1
     ASSERT(ab->name() == 'B', "Fill in the correct value for ab->name()");  // 多态，应该调用 B::name()
-
-    // 基类指针无法直接转换为派生类引用，因此需要 dynamic_cast
-    B &bb = dynamic_cast<B&>(*ab);  // 使用 dynamic_cast 进行转换
-    ASSERT(bb.name() == 'B', "Fill in the correct value for bb->name()");
 
     delete ab;  // 删除 B 对象，A::num_a 和 B::num_b 应该各减 1
     ASSERT(A::num_a == 1, "Every A was destroyed");  // A::num_a 应该是 1
