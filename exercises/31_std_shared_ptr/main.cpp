@@ -35,9 +35,11 @@ int main(int argc, char **argv) {
     ASSERT(observer.use_count() == 3, "");
 
     shared = nullptr;
+    // 将所有 ptrs 重置为 nullptr
     for (auto &ptr : ptrs) ptr = nullptr;
     ASSERT(observer.use_count() == 0, "");
 
+    // 此时 observer.lock() 会返回 nullptr，因为没有 shared_ptr 存在
     shared = observer.lock();
     ASSERT(observer.use_count() == 0, "");
 
