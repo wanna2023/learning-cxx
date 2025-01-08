@@ -1,14 +1,17 @@
 #include "../exercise.h"
 
+// READ: 静态字段 <https://zh.cppreference.com/w/cpp/language/static>
+// READ: 虚析构函数 <https://zh.cppreference.com/w/cpp/language/destructor>
+
 struct A {
-    static int num_a;
+    // 正确初始化静态字段
+    static int num_a;  // 声明静态成员变量
 
     A() {
-        ++num_a;  // Increment num_a when an A object is created
+        ++num_a;
     }
-
-    virtual ~A() {
-        --num_a;  // Decrement num_a when an A object is destroyed
+    virtual ~A() {  // 虚析构函数确保删除时会调用正确的析构函数
+        --num_a;
     }
 
     virtual char name() const {
@@ -16,54 +19,55 @@ struct A {
     }
 };
 
+// 静态成员初始化
 int A::num_a = 0;
 
 struct B final : public A {
-    static int num_b;
+    // 正确初始化静态字段
+    static int num_b;  // 声明静态成员变量
 
     B() {
-        ++num_b;  // Increment num_b when a B object is created
+        ++num_b;
     }
-
     ~B() {
-        --num_b;  // Decrement num_b when a B object is destroyed
+        --num_b;
     }
 
-    char name() const override {
+    char name() const final {
         return 'B';
     }
 };
 
+// 静态成员初始化
 int B::num_b = 0;
 
 int main(int argc, char **argv) {
-    {
-        auto a = new A;
-        auto b = new B;
-        ASSERT(A::num_a == 1, "A::num_a should be 1 after creating one A object");
-        ASSERT(B::num_b == 1, "B::num_b should be 1 after creating one B object");
-        ASSERT(a->name() == 'A', "a->name() should return 'A'");
-        ASSERT(b->name() == 'B', "b->name() should return 'B'");
+    auto a = new A;
+    auto b = new B;
 
-        delete a;
-        delete b;
-        ASSERT(A::num_a == 0, "A::num_a should be 0 after deleting the A object");
-        ASSERT(B::num_b == 0, "B::num_b should be 0 after deleting the B object");
-    }
+    // 通过构造函数，A::num_a 应该为 1，B::num_b 应该为 1
+    ASSERT(A::num_a == 1, "Fill in the correct value for A::num_a");
+    ASSERT(B::num_b == 1, "Fill in the correct value for B::num_b");
+    ASSERT(a->name() == 'A', "Fill in the correct value for a->name()");
+    ASSERT(b->name() == 'B', "Fill in the correct value for b->name()");
 
-    {
-        A *ab = new B;
-        ASSERT(A::num_a == 1, "A::num_a should be 1 after creating one B object via A*");
-        ASSERT(B::num_b == 1, "B::num_b should be 1 after creating one B object via A*");
-        ASSERT(ab->name() == 'B', "ab->name() should return 'B' when B is actually created");
+    delete a;  // 删除 A 对象，num_a 应该减 1
+    delete b;  // 删除 B 对象，num_b 应该减 1
+    ASSERT(A::num_a == 0, "Every A was destroyed");
+    ASSERT(B::num_b == 0, "Every B was destroyed");
 
-        B &bb = dynamic_cast<B&>(*ab);
-        ASSERT(bb.name() == 'B', "bb.name() should return 'B'");
+    A *ab = new B;  // 基类指针指向派生类对象
+    ASSERT(A::num_a == 1, "Fill in the correct value for A::num_a");  // A::num_a 应该为 1
+    ASSERT(B::num_b == 1, "Fill in the correct value for B::num_b");  // B::num_b 应该为 1
+    ASSERT(ab->name() == 'B', "Fill in the correct value for ab->name()");  // 多态，应该调用 B::name()
 
-        delete ab;
-        ASSERT(A::num_a == 0, "A::num_a should be 0 after deleting the B object via A*");
-        ASSERT(B::num_b == 0, "B::num_b should be 0 after deleting the B object via A*");
-    }
+    // 基类指针无法直接转换为派生类引用，因此需要 dynamic_cast
+    B &bb = dynamic_cast<B&>(*ab);  // 使用 dynamic_cast 进行转换
+    ASSERT(bb.name() == 'B', "Fill in the correct value for bb->name()");
+
+    delete ab;  // 删除 B 对象，A::num_a 和 B::num_b 应该各减 1
+    ASSERT(A::num_a == 0, "Every A was destroyed");
+    ASSERT(B::num_b == 0, "Every B was destroyed");
 
     return 0;
 }
