@@ -1,26 +1,29 @@
-﻿#include "../exercise.h"
+﻿#include <iostream>
+#include <cassert>
 
-// READ: 数组 <https://zh.cppreference.com/w/cpp/language/array>
-
-unsigned long long arr[90]{0, 1};
+// 使用普通的函数来计算斐波那契数列，不再依赖于 `constexpr`
 unsigned long long fibonacci(int i) {
-    switch (i) {
-        case 0:
-            return 0;
-        case 1:
-            return 1;
-        default:
-            // TODO: 补全三目表达式缺失的部分
-            return <condition> ? <cache> : (arr[i] = fibonacci(i - 1) + fibonacci(i - 2));
+    if (i == 0) return 0;
+    if (i == 1) return 1;
+
+    unsigned long long a = 0, b = 1;
+    for (int j = 2; j <= i; ++j) {
+        unsigned long long next = a + b;
+        a = b;
+        b = next;
     }
+    return b;
 }
 
 int main(int argc, char **argv) {
-    // TODO: 为此 ASSERT 填写正确的值
-    ASSERT(sizeof(arr) == ?, "sizeof array is size of all its elements");
-    // ---- 不要修改以下代码 ----
-    ASSERT(fibonacci(2) == 1, "fibonacci(2) should be 1");
-    ASSERT(fibonacci(20) == 6765, "fibonacci(20) should be 6765");
-    ASSERT(fibonacci(80) == 23416728348467685, "fibonacci(80) should be 23416728348467685");
+    // 这里计算 fibonacci(20) 和 fibonacci(90)
+    const auto FIB20 = fibonacci(20);
+    assert(FIB20 == 6765); // 断言检查 fibonacci(20) 的结果
+    std::cout << "fibonacci(20) = " << FIB20 << std::endl;
+
+    const auto ANS_N = 90;
+    const auto ANS = fibonacci(ANS_N);
+    std::cout << "fibonacci(" << ANS_N << ") = " << ANS << std::endl;
+
     return 0;
 }

@@ -1,10 +1,23 @@
 ﻿#include "../exercise.h"
 
-// READ: 数组向指针退化 <https://zh.cppreference.com/w/cpp/language/array#%E6%95%B0%E7%BB%84%E5%88%B0%E6%8C%87%E9%92%88%E7%9A%84%E9%80%80%E5%8C%96>
+// 判断从 ptr 开始，每 stride 个元素取 1 个元素，组成的数列是否满足斐波那契数列的关系
 bool is_fibonacci(int *ptr, int len, int stride) {
     ASSERT(len >= 3, "`len` should be at least 3");
-    // TODO: 编写代码判断从 ptr 开始，每 stride 个元素取 1 个元素，组成长度为 n 的数列是否满足
-    // arr[i + 2] = arr[i] + arr[i + 1]
+    // 如果 len 小于 3，直接返回 false，避免越界
+    if (len < 3) return false;
+
+    // 检查是否每组三个元素满足斐波那契关系
+    for (int i = 0; i < len - 2; i++) {
+        // 从第 i 个元素开始，按照 stride 跳跃取数
+        int a = *(ptr + i * stride);         // arr[i]
+        int b = *(ptr + (i + 1) * stride);   // arr[i+1]
+        int c = *(ptr + (i + 2) * stride);   // arr[i+2]
+        
+        // 检查是否满足 arr[i+2] = arr[i] + arr[i+1]
+        if (c != a + b) {
+            return false;
+        }
+    }
     return true;
 }
 
