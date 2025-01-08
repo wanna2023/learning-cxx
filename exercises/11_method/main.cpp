@@ -1,41 +1,45 @@
 #include "../exercise.h"
-#include <iostream>
 
 struct Fibonacci {
     unsigned long long cache[128];  // 用于缓存斐波那契数列的值
-    int cached;  // 用于标记缓存中最后计算的斐波那契数列项
+    int cached;  // 记录已缓存的最大索引
 
-    // 构造函数初始化缓存
-    Fibonacci() : cached(-1) {
-        // 初始化斐波那契数列的前两个值
+    // 构造函数：初始化缓存数组并设置初始值
+    Fibonacci() {
+        // 初始化缓存数组的前两个值
         cache[0] = 0;
         cache[1] = 1;
+        cached = 1;  // 目前缓存了 cache[0] 和 cache[1]
     }
 
-    // 获取斐波那契数列的第 i 项，利用缓存优化
+    // 获取斐波那契数列第 i 项的值
     unsigned long long get(int i) {
-        // 如果请求的值已经在缓存中，直接返回
+        // 如果 i 小于等于已缓存的位置，直接返回缓存的值
         if (i <= cached) {
             return cache[i];
         }
 
-        // 否则，从当前缓存项继续计算，直到计算到第 i 项
+        // 从已缓存的位置开始计算并缓存
         for (int j = cached + 1; j <= i; ++j) {
             cache[j] = cache[j - 1] + cache[j - 2];
         }
 
-        // 更新缓存标记
+        // 更新缓存的最大位置
         cached = i;
+
+        // 返回缓存的第 i 项
         return cache[i];
     }
 };
 
 int main(int argc, char **argv) {
-    // 创建 Fibonacci 对象，初始化时会处理缓存
+    // 初始化 Fibonacci 结构体
     Fibonacci fib;
-
-    // 测试 fibonacci(10) 的值是否正确
+    
+    // 测试：斐波那契数列第 10 项应该是 55
     ASSERT(fib.get(10) == 55, "fibonacci(10) should be 55");
+
+    // 输出斐波那契数列的第 10 项
     std::cout << "fibonacci(10) = " << fib.get(10) << std::endl;
 
     return 0;

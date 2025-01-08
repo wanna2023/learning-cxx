@@ -4,67 +4,70 @@
 #include <string>
 #include <vector>
 
-// READ: `std::unique_ptr` <https://zh.cppreference.com/w/cpp/memory/unique_ptr>
-
+// Global record container to hold the results of destructed Resource objects.
 std::vector<std::string> RECORDS;
 
 class Resource {
     std::string _records;
 
 public:
+    // Record a single character into the _records string.
     void record(char record) {
         _records.push_back(record);
     }
 
+    // Destructor: add _records to the global RECORDS vector.
     ~Resource() {
         RECORDS.push_back(_records);
     }
 };
 
+// Alias for the unique pointer type to Resource.
 using Unique = std::unique_ptr<Resource>;
 
-// reset 函数，每次调用返回一个新的 Resource
+// Function to reset the resource, record 'r' and return a new Resource.
 Unique reset(Unique ptr) {
-    if (ptr) ptr->record('r');  // 如果已有资源，记录 'r'
-    return std::make_unique<Resource>();  // 返回一个新的 Resource
+    if (ptr) ptr->record('r');
+    return std::make_unique<Resource>();
 }
 
-// drop 函数，将资源丢弃并返回 nullptr
+// Function to drop the resource, record 'd' and return nullptr.
 Unique drop(Unique ptr) {
-    if (ptr) ptr->record('d');  // 如果已有资源，记录 'd'
-    return nullptr;  // 丢弃资源
+    if (ptr) ptr->record('d');
+    return nullptr;
 }
 
-// forward 函数，返回传入的资源
+// Function to forward the resource, record 'f' and return the original ptr.
 Unique forward(Unique ptr) {
-    if (ptr) ptr->record('f');  // 如果已有资源，记录 'f'
-    return ptr;  // 返回传入的资源
+    if (ptr) ptr->record('f');
+    return ptr;
 }
 
 int main(int argc, char **argv) {
     std::vector<std::string> problems[3];
 
-    // 第一个测试用例
-    drop(forward(reset(nullptr)));  // 创建一个新资源，记录 'r'，然后丢弃资源，记录 'd'
-    problems[0] = std::move(RECORDS);  // 保存 RECORDS
+    // Problem 0: drop(forward(reset(nullptr))) -> 'fd'
+    drop(forward(reset(nullptr)));
+    problems[0] = std::move(RECORDS);
 
-    // 第二个测试用例
-    forward(drop(reset(forward(forward(reset(nullptr))))));  // 嵌套调用，资源生命周期较复杂
-    problems[1] = std::move(RECORDS);  // 保存 RECORDS
+    // Problem 1: forward(drop(reset(forward(forward(reset(nullptr)))))) -> Analyze sequence of operations
+    forward(drop(reset(forward(forward(reset(nullptr))))));
+    problems[1] = std::move(RECORDS);
 
-    // 第三个测试用例
-    drop(drop(reset(drop(reset(reset(nullptr))))));  // 更复杂的资源丢弃和重置
-    problems[2] = std::move(RECORDS);  // 保存 RECORDS
+    // Problem 2: drop(drop(reset(drop(reset(reset(nullptr)))))) -> Analyze sequence of operations
+    drop(drop(reset(drop(reset(reset(nullptr))))));
+    problems[2] = std::move(RECORDS);
 
-    // ---- 不要修改以上代码 ----
+    // ---- Don't modify the code below ----
 
     std::vector<const char *> answers[]{
-        {"fd"},  // 第一个问题：记录顺序是 'r' 和 'd'
-        {"ffffdd", "rffdd"},  // 第二个问题：根据资源生命周期推断，记录顺序（注意这个依赖平台和对象析构的顺序）
-        {"fdffff", "fddff", ""},  // 第三个问题：根据资源管理和丢弃顺序推断记录
+        {"fd"},
+        // TODO: Analyze the resource lifecycle and fill the expected results for problems[1]
+        {"fdfd", "", "", "", "", "", "", ""},
+        {"fddf", "", "", "", "", "", "", ""},
     };
 
-    // ---- 不要修改以下代码 ----
+    // ---- Don't modify the code below ----
 
     for (auto i = 0; i < 3; ++i) {
         ASSERT(problems[i].size() == answers[i].size(), "wrong size");

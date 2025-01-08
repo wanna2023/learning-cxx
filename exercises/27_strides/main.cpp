@@ -1,20 +1,17 @@
 ﻿#include "../exercise.h"
 #include <vector>
 
-// 张量的步长计算：从最后一维开始逐层计算步长
 using udim = unsigned int;
 
 /// @brief 计算连续存储张量的步长
 /// @param shape 张量的形状
 /// @return 张量每维度的访问步长
 std::vector<udim> strides(std::vector<udim> const &shape) {
-    std::vector<udim> strides(shape.size(), 0);
-    udim step = 1;
+    std::vector<udim> strides(shape.size(), 1);
     
-    // 逆向迭代，从最后一维开始
-    for (auto rit = shape.rbegin(); rit != shape.rend(); ++rit) {
-        strides[std::distance(rit, shape.rbegin())] = step;
-        step *= *rit;  // 更新步长
+    // 从倒数第二维开始计算步长
+    for (int i = shape.size() - 2; i >= 0; --i) {
+        strides[i] = strides[i + 1] * shape[i + 1];
     }
     
     return strides;
