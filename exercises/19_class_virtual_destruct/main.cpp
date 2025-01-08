@@ -1,8 +1,5 @@
 #include "../exercise.h"
 
-// READ: 静态字段 <https://zh.cppreference.com/w/cpp/language/static>
-// READ: 虚析构函数 <https://zh.cppreference.com/w/cpp/language/destructor>
-
 struct A {
     // 静态成员变量初始化
     static int num_a;
@@ -10,6 +7,7 @@ struct A {
     A() {
         ++num_a;
     }
+
     virtual ~A() {
         --num_a;
     }
@@ -29,6 +27,7 @@ struct B final : public A {
     B() {
         ++num_b;
     }
+
     ~B() {
         --num_b;
     }
