@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     ASSERT(observer.use_count() == 2, "");
 
     shared = observer.lock();
-    ASSERT(observer.use_count() == 2, "");
+    ASSERT(observer.use_count() == 3, "");
 
     shared = nullptr;
     // 将所有 ptrs 重置为 nullptr
