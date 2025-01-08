@@ -1,61 +1,46 @@
-﻿#include <iostream>
+﻿#include "../exercise.h"
 #include <memory>
-#include <cassert>  // 使用标准的 assert
 
-// 自定义一个简单的 ASSERT 宏来替代
-#define ASSERT(condition, message) \
-    if (!(condition)) { std::cerr << "Assertion failed: " << message << std::endl; std::exit(1); }
+// READ: `std::shared_ptr` <https://zh.cppreference.com/w/cpp/memory/shared_ptr>
+// READ: `std::weak_ptr` <https://zh.cppreference.com/w/cpp/memory/weak_ptr>
 
-int main() {
-    // 创建一个 shared_ptr，指向整数 10
-    auto shared = std::make_shared<int>(10);
-
-    // 创建一个包含三个 shared_ptr 的数组，全部指向同一个对象
-    std::shared_ptr<int> ptrs[]{shared, shared, shared};
+// TODO: 将下列 `?` 替换为正确的值
+int main(int argc, char **argv) {
+    auto shared = std::make_shared<int>(10); // shared 的引用计数 = 1
+    std::shared_ptr<int> ptrs[]{shared, shared, shared}; // ptrs[0], ptrs[1], ptrs[2] 都指向 shared
+    // 此时引用计数为 3（shared, ptrs[0], ptrs[1], ptrs[2]）
     
-    // 创建一个 weak_ptr，它观察 shared 所指向的对象
-    std::weak_ptr<int> observer = shared;
-    ASSERT(observer.use_count() == 3, "use_count should be 3");
+    std::weak_ptr<int> observer = shared;  // weak_ptr 观察 shared，引用计数不变，仍为 3
+    ASSERT(observer.use_count() == 3, "use_count 应该是 3");
 
-    // 重置 ptrs[0]，减少引用计数
-    ptrs[0].reset();
-    ASSERT(observer.use_count() == 2, "use_count should be 2");
+    ptrs[0].reset();  // ptrs[0] 不再指向 shared，引用计数变为 2
+    ASSERT(observer.use_count() == 2, "use_count 应该是 2");
 
-    // 重置 ptrs[1]，减少引用计数
-    ptrs[1] = nullptr;
-    ASSERT(observer.use_count() == 1, "use_count should be 1");
+    ptrs[1] = nullptr;  // ptrs[1] 不再指向 shared，引用计数变为 1
+    ASSERT(observer.use_count() == 1, "use_count 应该是 1");
 
-    // ptrs[2] 现在指向一个新的 shared_ptr，指向一个相同值的对象
-    ptrs[2] = std::make_shared<int>(*shared);
-    ASSERT(observer.use_count() == 1, "use_count should still be 1");
+    ptrs[2] = std::make_shared<int>(*shared);  // ptrs[2] 现在指向一个新的对象，引用计数仍然是 1
+    ASSERT(observer.use_count() == 1, "use_count 应该是 1");
 
-    // 重新给 ptrs[0] 和 ptrs[1] 赋值为 shared
-    ptrs[0] = shared;
-    ptrs[1] = shared;
+    ptrs[0] = shared;  // ptrs[0] 重新指向 shared，引用计数增加到 2
+    ptrs[1] = shared;  // ptrs[1] 重新指向 shared，引用计数增加到 3
+    ptrs[2] = std::move(shared);  // shared 被移动到 ptrs[2]，引用计数增加到 3（但原 shared 指针为空）
+    ASSERT(observer.use_count() == 3, "use_count 应该是 3");
 
-    // 将 shared 转移到 ptrs[2]，并设置 ptrs[2] 为 nullptr
-    ptrs[2] = std::move(shared);
-    ASSERT(observer.use_count() == 3, "use_count should be 3");
+    std::ignore = std::move(ptrs[0]);  // ptrs[0] 通过 move 操作不再指向 shared，引用计数减为 2
+    ptrs[1] = std::move(ptrs[1]);  // ptrs[1] 通过 move 操作不再指向 shared，引用计数减为 1
+    ptrs[1] = std::move(ptrs[2]);  // ptrs[1] 现在指向 shared，引用计数增加为 2
+    ASSERT(observer.use_count() == 2, "use_count 应该是 2");
 
-    // 使用 move 操作重置 ptrs 中的元素
-    std::ignore = std::move(ptrs[0]); // 移动 ptrs[0]，忽略返回值
-    ptrs[1] = std::move(ptrs[2]);     // 移动 ptrs[2] 到 ptrs[1]
-    ASSERT(observer.use_count() == 3, "use_count should still be 3");
+    shared = observer.lock();  // 通过 observer.lock() 恢复 shared，并增加引用计数到 3
+    ASSERT(observer.use_count() == 3, "use_count 应该是 3");
 
-    // 通过 weak_ptr 重新获得 shared_ptr，引用计数增加
-    shared = observer.lock();
-    ASSERT(observer.use_count() == 4, "use_count should be 4");
+    shared = nullptr;  // shared 置空，引用计数减少到 2
+    for (auto &ptr : ptrs) ptr = nullptr;  // ptrs 中的所有指针都置空，引用计数减少到 0
+    ASSERT(observer.use_count() == 0, "use_count 应该是 0");
 
-    // 将 shared 和 ptrs 中的元素全部重置
-    shared = nullptr;
-    for (auto &ptr : ptrs) {
-        ptr = nullptr;
-    }
-    ASSERT(observer.use_count() == 1, "use_count should be 1");
-
-    // 再次通过 observer.lock() 获得 shared_ptr，引用计数增加
-    shared = observer.lock();
-    ASSERT(observer.use_count() == 2, "use_count should be 2");
+    shared = observer.lock();  // 再次通过 observer.lock() 尝试获取 shared，此时为 nullptr
+    ASSERT(observer.use_count() == 0, "use_count 应该是 0");
 
     return 0;
 }
