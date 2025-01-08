@@ -4,14 +4,13 @@
 // READ: `std::shared_ptr` <https://zh.cppreference.com/w/cpp/memory/shared_ptr>
 // READ: `std::weak_ptr` <https://zh.cppreference.com/w/cpp/memory/weak_ptr>
 
-// TODO: 将下列 `?` 替换为正确的值
 int main(int argc, char **argv) {
     auto shared = std::make_shared<int>(10);
     std::shared_ptr<int> ptrs[]{shared, shared, shared};
 
     std::weak_ptr<int> observer = shared;
-    // 修改为 1，因为 weak_ptr 不增加引用计数
-    ASSERT(observer.use_count() == 1, "Initial use count of observer should be 1");
+    // 修改为 3，因为 weak_ptr 不增加引用计数，它观察的 shared_ptr 引用计数是 3
+    ASSERT(observer.use_count() == 3, "Initial use count of observer should be 3");
 
     ptrs[0].reset();
     ASSERT(observer.use_count() == 2, "After resetting ptrs[0], use count should be 2");

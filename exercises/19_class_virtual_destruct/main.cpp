@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
 
     delete a;  // 删除 A 对象，num_a 应该减 1
     delete b;  // 删除 B 对象，num_b 应该减 1
-    ASSERT(A::num_a == 1, "Every A was destroyed");
-    ASSERT(B::num_b == 0, "Every B was destroyed");
+    ASSERT(A::num_a == 1, "Every A was destroyed");  // 这里的断言是检查 A::num_a 是否为 1
+    ASSERT(B::num_b == 0, "Every B was destroyed");  // 这里的断言是检查 B::num_b 是否为 0
 
     A *ab = new B;  // 基类指针指向派生类对象
     ASSERT(A::num_a == 2, "Fill in the correct value for A::num_a");  // A::num_a 应该为 2
@@ -66,8 +66,8 @@ int main(int argc, char **argv) {
     ASSERT(bb.name() == 'B', "Fill in the correct value for bb->name()");
 
     delete ab;  // 删除 B 对象，A::num_a 和 B::num_b 应该各减 1
-    ASSERT(A::num_a == 1, "Every A was destroyed");
-    ASSERT(B::num_b == 0, "Every B was destroyed");
+    ASSERT(A::num_a == 1, "Every A was destroyed");  // A::num_a 应该是 1
+    ASSERT(B::num_b == 0, "Every B was destroyed");  // B::num_b 应该是 0
 
     return 0;
 }
