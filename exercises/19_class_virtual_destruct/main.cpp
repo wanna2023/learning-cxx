@@ -4,11 +4,11 @@ struct A {
     static int num_a;
 
     A() {
-        ++num_a;
+        ++num_a;  // Increment num_a when an A object is created
     }
 
     virtual ~A() {
-        --num_a;
+        --num_a;  // Decrement num_a when an A object is destroyed
     }
 
     virtual char name() const {
@@ -22,11 +22,11 @@ struct B final : public A {
     static int num_b;
 
     B() {
-        ++num_b;
+        ++num_b;  // Increment num_b when a B object is created
     }
 
     ~B() {
-        --num_b;
+        --num_b;  // Decrement num_b when a B object is destroyed
     }
 
     char name() const override {
