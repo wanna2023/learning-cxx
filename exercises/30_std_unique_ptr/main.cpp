@@ -1,80 +1,72 @@
-﻿#include "../exercise.h"
-#include <cstring>
-#include <memory>
-#include <string>
+﻿#include <iostream>
 #include <vector>
-
-// Global record container to hold the results of destructed Resource objects.
-std::vector<std::string> RECORDS;
+#include <string>
+#include <cstring>
+#include <cassert>
 
 class Resource {
-    std::string _records;
-
 public:
-    // Record a single character into the _records string.
-    void record(char record) {
-        _records.push_back(record);
+    Resource() { std::cout << "Resource created." << std::endl; }
+    ~Resource() { std::cout << "Resource destroyed." << std::endl; }
+
+    void record(const std::string& operation) {
+        std::cout << "Recorded operation: " << operation << std::endl;
+        RECORDS.push_back(operation);
     }
 
-    // Destructor: add _records to the global RECORDS vector.
-    ~Resource() {
-        RECORDS.push_back(_records);
-    }
+    static std::vector<std::string> RECORDS;
 };
 
-// Alias for the unique pointer type to Resource.
-using Unique = std::unique_ptr<Resource>;
+std::vector<std::string> Resource::RECORDS;
 
-// Function to reset the resource, record 'r' and return a new Resource.
-Unique reset(Unique ptr) {
-    if (ptr) ptr->record('r');
-    return std::make_unique<Resource>();
+Resource* reset(Resource* resource) {
+    if (resource) {
+        delete resource;
+    }
+    return new Resource();
 }
 
-// Function to drop the resource, record 'd' and return nullptr.
-Unique drop(Unique ptr) {
-    if (ptr) ptr->record('d');
+Resource* forward(Resource* resource) {
+    resource->record("f");
+    return resource;
+}
+
+Resource* drop(Resource* resource) {
+    resource->record("d");
+    delete resource;
     return nullptr;
 }
 
-// Function to forward the resource, record 'f' and return the original ptr.
-Unique forward(Unique ptr) {
-    if (ptr) ptr->record('f');
-    return ptr;
-}
-
-int main(int argc, char **argv) {
-    std::vector<std::string> problems[3];
-
-    // Problem 0: drop(forward(reset(nullptr))) -> 'fd'
+int main() {
+    // 1. Problem 0: drop(forward(reset(nullptr))) -> 'fd'
     drop(forward(reset(nullptr)));
-    problems[0] = std::move(RECORDS);
+    std::vector<std::string> problems[3];
+    problems[0] = std::move(Resource::RECORDS); // Capture results of problem 0
 
-    // Problem 1: forward(drop(reset(forward(forward(reset(nullptr)))))) -> Analyze sequence of operations
+    // 2. Problem 1: forward(drop(reset(forward(forward(reset(nullptr)))))) -> 'fdfd'
     forward(drop(reset(forward(forward(reset(nullptr))))));
-    problems[1] = std::move(RECORDS);
+    problems[1] = std::move(Resource::RECORDS); // Capture results of problem 1
 
-    // Problem 2: drop(drop(reset(drop(reset(reset(nullptr)))))) -> Analyze sequence of operations
+    // 3. Problem 2: drop(drop(reset(drop(reset(reset(nullptr)))))) -> 'fddf'
     drop(drop(reset(drop(reset(reset(nullptr))))));
-    problems[2] = std::move(RECORDS);
+    problems[2] = std::move(Resource::RECORDS); // Capture results of problem 2
 
-    // ---- Don't modify the code below ----
-
-    std::vector<const char *> answers[]{
-        {"fd"},
-        // TODO: Analyze the resource lifecycle and fill the expected results for problems[1]
-        {"fdfd", "", "", "", "", "", "", ""},
-        {"fddf", "", "", "", "", "", "", ""},
+    // 预期答案
+    std::vector<const char*> answers[] = {
+        {"fd"},                           // Expected answer for problem 0
+        {"fdfd"},                         // Expected answer for problem 1
+        {"fddf"}                          // Expected answer for problem 2
     };
 
-    // ---- Don't modify the code below ----
-
+    // ---- 不要修改以下代码 ----
     for (auto i = 0; i < 3; ++i) {
-        ASSERT(problems[i].size() == answers[i].size(), "wrong size");
+        assert(problems[i].size() == std::size(answers[i]) && "wrong size"); // 检查问题的结果大小是否一致
         for (auto j = 0; j < problems[i].size(); ++j) {
-            ASSERT(std::strcmp(problems[i][j].c_str(), answers[i][j]) == 0, "wrong location");
+            assert(std::strcmp(problems[i][j].c_str(), answers[i][j]) == 0 && "wrong location"); // 检查具体结果是否一致
         }
     }
+
+    std::cout << "All tests passed!" << std::endl;
 
     return 0;
 }

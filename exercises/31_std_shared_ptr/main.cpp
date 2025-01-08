@@ -1,6 +1,10 @@
 ﻿#include <iostream>
 #include <memory>
-#include <cassert>
+#include <cassert>  // 使用标准的 assert
+
+// 自定义一个简单的 ASSERT 宏来替代
+#define ASSERT(condition, message) \
+    if (!(condition)) { std::cerr << "Assertion failed: " << message << std::endl; std::exit(1); }
 
 int main() {
     // 创建一个 shared_ptr，指向整数 10
@@ -34,9 +38,8 @@ int main() {
     ASSERT(observer.use_count() == 3, "use_count should be 3");
 
     // 使用 move 操作重置 ptrs 中的元素
-    std::ignore = std::move(ptrs[0]);
-    ptrs[1] = std::move(ptrs[1]);
-    ptrs[1] = std::move(ptrs[2]);
+    std::ignore = std::move(ptrs[0]); // 移动 ptrs[0]，忽略返回值
+    ptrs[1] = std::move(ptrs[2]);     // 移动 ptrs[2] 到 ptrs[1]
     ASSERT(observer.use_count() == 3, "use_count should still be 3");
 
     // 通过 weak_ptr 重新获得 shared_ptr，引用计数增加
