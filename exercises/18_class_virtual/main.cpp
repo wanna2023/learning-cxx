@@ -10,6 +10,7 @@ struct A {
         return 'A';
     }
 };
+
 struct B : public A {
     // READ: override <https://zh.cppreference.com/w/cpp/language/override>
     char virtual_name() const override {
@@ -19,6 +20,7 @@ struct B : public A {
         return 'B';
     }
 };
+
 struct C : public B {
     // READ: final <https://zh.cppreference.com/w/cpp/language/final>
     char virtual_name() const final {
@@ -28,6 +30,7 @@ struct C : public B {
         return 'C';
     }
 };
+
 struct D : public C {
     char direct_name() const {
         return 'D';
@@ -42,41 +45,50 @@ int main(int argc, char **argv) {
     C c;
     D d;
 
-    ASSERT(a.virtual_name() == '?', MSG);
-    ASSERT(b.virtual_name() == '?', MSG);
-    ASSERT(c.virtual_name() == '?', MSG);
-    ASSERT(d.virtual_name() == '?', MSG);
-    ASSERT(a.direct_name() == '?', MSG);
-    ASSERT(b.direct_name() == '?', MSG);
-    ASSERT(c.direct_name() == '?', MSG);
-    ASSERT(d.direct_name() == '?', MSG);
+    // 虚函数 `virtual_name()` 根据实际类型动态调用
+    ASSERT(a.virtual_name() == 'A', MSG);
+    ASSERT(b.virtual_name() == 'B', MSG);
+    ASSERT(c.virtual_name() == 'C', MSG);
+    ASSERT(d.virtual_name() == 'C', MSG);
+
+    // 直接函数调用 `direct_name()` 根据静态类型调用
+    ASSERT(a.direct_name() == 'A', MSG);
+    ASSERT(b.direct_name() == 'B', MSG);
+    ASSERT(c.direct_name() == 'C', MSG);
+    ASSERT(d.direct_name() == 'D', MSG);
 
     A &rab = b;
     B &rbc = c;
     C &rcd = d;
 
-    ASSERT(rab.virtual_name() == '?', MSG);
-    ASSERT(rbc.virtual_name() == '?', MSG);
-    ASSERT(rcd.virtual_name() == '?', MSG);
-    ASSERT(rab.direct_name() == '?', MSG);
-    ASSERT(rbc.direct_name() == '?', MSG);
-    ASSERT(rcd.direct_name() == '?', MSG);
+    // 虚函数 `virtual_name()` 仍然根据实际类型动态调用
+    ASSERT(rab.virtual_name() == 'B', MSG);
+    ASSERT(rbc.virtual_name() == 'C', MSG);
+    ASSERT(rcd.virtual_name() == 'C', MSG);
+
+    // 直接函数调用 `direct_name()` 仍然根据静态类型调用
+    ASSERT(rab.direct_name() == 'B', MSG);
+    ASSERT(rbc.direct_name() == 'C', MSG);
+    ASSERT(rcd.direct_name() == 'C', MSG);
 
     A &rac = c;
     B &rbd = d;
 
-    ASSERT(rac.virtual_name() == '?', MSG);
-    ASSERT(rbd.virtual_name() == '?', MSG);
-    ASSERT(rac.direct_name() == '?', MSG);
-    ASSERT(rbd.direct_name() == '?', MSG);
+    // 虚函数 `virtual_name()` 根据实际类型动态调用
+    ASSERT(rac.virtual_name() == 'C', MSG);
+    ASSERT(rbd.virtual_name() == 'C', MSG);
+
+    // 直接函数调用 `direct_name()` 根据静态类型调用
+    ASSERT(rac.direct_name() == 'C', MSG);
+    ASSERT(rbd.direct_name() == 'D', MSG);
 
     A &rad = d;
 
-    ASSERT(rad.virtual_name() == '?', MSG);
-    ASSERT(rad.direct_name() == '?', MSG);
+    // 虚函数 `virtual_name()` 根据实际类型动态调用
+    ASSERT(rad.virtual_name() == 'C', MSG);
+
+    // 直接函数调用 `direct_name()` 根据静态类型调用
+    ASSERT(rad.direct_name() == 'D', MSG);
 
     return 0;
 }
-
-// READ: 扩展阅读-纯虚、抽象 <https://zh.cppreference.com/w/cpp/language/abstract_class>
-// READ: 扩展阅读-虚继承 <https://zh.cppreference.com/w/cpp/language/derived_class>

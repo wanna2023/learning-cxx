@@ -1,27 +1,38 @@
 #include "../exercise.h"
-
-// READ: 析构函数 <https://zh.cppreference.com/w/cpp/language/destructor>
-// READ: RAII <https://learn.microsoft.com/zh-cn/cpp/cpp/object-lifetime-and-resource-management-modern-cpp?view=msvc-170>
+#include <iostream>
 
 /// @brief 任意缓存容量的斐波那契类型。
 /// @details 可以在构造时传入缓存容量，因此需要动态分配缓存空间。
 class DynFibonacci {
-    size_t *cache;
-    int cached;
+    size_t *cache;  // 动态分配的缓存数组
+    int cached;     // 当前已缓存的斐波那契数个数
+    int capacity;   // 缓存的最大容量
 
 public:
-    // TODO: 实现动态设置容量的构造器
-    DynFibonacci(int capacity): cache(new ?), cached(?) {}
+    /// 构造器，初始化缓存容量并分配缓存空间
+    DynFibonacci(int capacity) : capacity(capacity), cached(2) {
+        cache = new size_t[capacity];  // 动态分配缓存空间
+        cache[0] = 0;  // 初始化斐波那契数列的前两个数
+        cache[1] = 1;
+    }
 
-    // TODO: 实现析构器，释放缓存空间
-    ~DynFibonacci();
+    /// 析构器，释放缓存空间
+    ~DynFibonacci() {
+        delete[] cache;  // 释放动态分配的内存
+    }
 
-    // TODO: 实现正确的缓存优化斐波那契计算
+    /// 获取斐波那契数列的第 i 项，使用缓存优化
     size_t get(int i) {
-        for (; false; ++cached) {
-            cache[cached] = cache[cached - 1] + cache[cached - 2];
+        // 如果缓存的数目小于请求的索引，继续计算并更新缓存
+        while (cached <= i) {
+            if (cached >= capacity) {
+                std::cerr << "Cache overflow! Requested index exceeds capacity." << std::endl;
+                return -1;  // 返回错误代码，表示缓存溢出
+            }
+            cache[cached] = cache[cached - 1] + cache[cached - 2];  // 斐波那契递推公式
+            ++cached;
         }
-        return cache[i];
+        return cache[i];  // 返回缓存中的第 i 项
     }
 };
 
